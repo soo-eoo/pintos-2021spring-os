@@ -150,7 +150,7 @@ void min_heapify( struct Array_thread *a, int i ) {
 //         struct thread *temp = a->array[ i ];
 //         a->array[ i ] = a->array[ smallest ];
 //         a->array[ smallest ] = temp;
-        max_heapify( a, smallest );
+        min_heapify( a, smallest );
     }
 
 }
@@ -256,7 +256,7 @@ thread_init (void)
   initial_thread->tid = allocate_tid ();
     
     // initialize heap of sleeping threads
-    heap_sleeping_threads = initThreadArray( &heap_sleeping_threads, 100 );
+    initThreadArray( &heap_sleeping_threads, 100 );
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.

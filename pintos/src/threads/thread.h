@@ -155,7 +155,7 @@ void insert_thread_to_heap( struct Array_thread *a, struct thread *t );
 void thread_sleep( int64_t alarm_time_ticks );
 void min_heapify( struct Array_thread *a, int i );
 
-int thread_to_be_waken_up( void );
+struct thread * thread_to_be_waken_up( void );
 struct thread * extract_min_thread_from_heap( struct Array_thread *a );
 
 #endif /* threads/thread.h */
