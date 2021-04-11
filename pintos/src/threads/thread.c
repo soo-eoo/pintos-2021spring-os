@@ -51,7 +51,7 @@ struct kernel_thread_frame
 void 
 initThreadArray( struct Array_thread *a, size_t initialSize) {
     char result[50];
-    sprintf( result, "%d", initialSize * sizeof( struct thread * ) );
+    snprintf( result, "%d", initialSize * sizeof( struct thread * ) );
     printf("\n The string for the num is %s", result);
     
     a->array = malloc( initialSize * sizeof( struct thread * ) );
