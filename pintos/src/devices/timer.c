@@ -91,10 +91,16 @@ timer_sleep (int64_t ticks)
 {
   int64_t start = timer_ticks ();
 
-//   ASSERT (intr_get_level () == INTR_ON);
+  ASSERT (intr_get_level () == INTR_ON);
 //   while (timer_elapsed (start) < ticks) 
 //     thread_yield ();
-    thread_sleep( start + ticks );
+    
+    struct thread *cur = thread_current();
+    cur->remaining_alarm_time_ticks = ticks;
+    
+    enum intr_level old_level = intr_disable();
+    thread_block( );
+    intr_set_level(old_level);
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -167,6 +173,21 @@ timer_print_stats (void)
   printf ("Timer: %"PRId64" ticks\n", timer_ticks ());
 }
 
+
+static void
+wake_thread_up( struct thread *t, void *aux )
+{
+    if( t->status == THREAD_BLOCKED )
+    {
+        t->remaining_alarm_time_ticks = t->remaining_alarm_time_ticks - 1;
+        if(t->remaining_alarm_time_ticks == 0)
+        {
+            thread_unblock(t);
+        }
+    }
+}
+
+
 /* Timer interrupt handler. */
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
@@ -174,9 +195,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
     ticks++;
     thread_tick ();
     // check the next alarm clock time, and wake the respective thread until all alarms are turned off (20210411+)
-    while( thread_to_be_waken_up( )->alarm_time_ticks <= ticks ) {
-        thread_wake_up( );
-    }
+    thread_foreach( wake_thread_up, 0 );
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

@@ -92,7 +92,7 @@ struct thread
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
-    int64_t alarm_time_ticks;           /* alarm time in ticks */
+    int64_t remaining_alarm_time_ticks;           /* alarm time in ticks */
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
@@ -138,26 +138,5 @@ void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
-
-struct Array_thread {
-  struct thread **array;
-  int64_t used;
-  int64_t size;
-} Array_thread;
-
-void initThreadArray( struct Array_thread * a, size_t initialSize);
-int64_t parent( int64_t i );
-int64_t left_child( int64_t i );
-int64_t right_child( int64_t i );
-void swap_thread( struct thread **x, struct thread **y );
-void insert_thread_to_heap( struct Array_thread *a, struct thread *t );
-
-void thread_sleep( int64_t alarm_time_ticks );
-void min_heapify( struct Array_thread *a, int64_t i );
-
-struct thread * thread_to_be_waken_up( void );
-struct thread * extract_min_thread_from_heap( struct Array_thread *a );
-
-void thread_wake_up ( void );
 
 #endif /* threads/thread.h */
