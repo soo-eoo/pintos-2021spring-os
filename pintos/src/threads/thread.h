@@ -141,21 +141,23 @@ int thread_get_load_avg (void);
 
 struct Array_thread {
   struct thread **array;
-  size_t used;
-  size_t size;
+  int64_t used;
+  int64_t size;
 } Array_thread;
 
 void initThreadArray( struct Array_thread * a, size_t initialSize);
-int parent( int i );
-int left_child( int i );
-int right_child( int i );
+int64_t parent( int64_t i );
+int64_t left_child( int64_t i );
+int64_t right_child( int64_t i );
 void swap_thread( struct thread **x, struct thread **y );
 void insert_thread_to_heap( struct Array_thread *a, struct thread *t );
 
 void thread_sleep( int64_t alarm_time_ticks );
-void min_heapify( struct Array_thread *a, int i );
+void min_heapify( struct Array_thread *a, int64_t i );
 
 struct thread * thread_to_be_waken_up( void );
 struct thread * extract_min_thread_from_heap( struct Array_thread *a );
+
+void thread_wake_up ( void );
 
 #endif /* threads/thread.h */

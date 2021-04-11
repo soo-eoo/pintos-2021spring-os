@@ -60,17 +60,17 @@ static struct Array_thread heap_sleeping_threads;
 
 // heap structure for saving alarm time for sleeping threads
 // returns the index of the parent node
-int parent(int i) {
+int64_t parent(int64_t i) {
     return (i - 1) / 2;
 }
 
 // return the index of the left child 
-int left_child(int i) {
+int64_t left_child(int64_t i) {
     return 2*i + 1;
 }
 
 // return the index of the right child 
-int right_child(int i) {
+int64_t right_child(int64_t i) {
     return 2*i + 2;
 }
 
@@ -95,7 +95,7 @@ void insert_thread_to_heap( struct Array_thread *a, struct thread *t )
     a->used = a->used + 1;
 
     // move up until the heap property satisfies
-    int i = a->used - 1;
+    int64_t i = a->used - 1;
     while (i != 0 && a->array[ parent( i ) ]->alarm_time_ticks > a->array[i]->alarm_time_ticks ) {
         swap_thread( &a->array[ parent( i ) ], &a->array[ i ] );
         i = parent( i );
@@ -123,15 +123,15 @@ thread_sleep( int64_t alarm_time_ticks )
 
 // moves the item at position i of array a
 // into its appropriate position
-void min_heapify( struct Array_thread *a, int i ) {
+void min_heapify( struct Array_thread *a, int64_t i ) {
     // find left child node
-    int left = left_child(i);
+    int64_t left = left_child(i);
 
     // find right child node
-    int right = right_child(i);
+    int64_t right = right_child(i);
 
     // find the largest among 3 nodes
-    int smallest = i;
+    int64_t smallest = i;
 
     // check if the left node is smaller than the current node
     if ( left <= a->used && a->array[ left ]->alarm_time_ticks < a->array[ smallest ]->alarm_time_ticks ) {
@@ -185,7 +185,7 @@ extract_min_thread_from_heap( struct Array_thread *a ) {
 }
 
 // function to wake up a thread
-static void 
+void 
 thread_wake_up ( void ) 
 {
     struct thread *t = thread_to_be_waken_up( ); // retrieve thread to be waken up
