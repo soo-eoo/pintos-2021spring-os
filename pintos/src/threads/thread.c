@@ -53,7 +53,9 @@ void
 initThreadArray( struct Array_thread *a, size_t initialSize) {
     printf("size: %d", initialSize * sizeof( struct thread * ) );
     
-    a->array = struct *thread[ 1000 ];
+    struct thread *thread_array[ 1000 ];
+    
+    a->array = thread_array;
     // malloc( initialSize * sizeof( struct thread * ) );
     a->used = 0;
     a->size = initialSize;
