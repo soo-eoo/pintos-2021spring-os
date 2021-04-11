@@ -50,9 +50,7 @@ struct kernel_thread_frame
 // dynamic array of threads for dynamic heap structure for saving alarm time for sleeping threads
 void 
 initThreadArray( struct Array_thread *a, size_t initialSize) {
-    char result[50];
-    snprintf( result, "%d", initialSize * sizeof( struct thread * ) );
-    printf("\n The string for the num is %s", result);
+    printf("size: %d", initialSize * sizeof( struct thread * ) );
     
     a->array = malloc( initialSize * sizeof( struct thread * ) );
     a->used = 0;
