@@ -91,9 +91,10 @@ timer_sleep (int64_t ticks)
 {
   int64_t start = timer_ticks ();
 
-  ASSERT (intr_get_level () == INTR_ON);
-  while (timer_elapsed (start) < ticks) 
-    thread_yield ();
+//   ASSERT (intr_get_level () == INTR_ON);
+//   while (timer_elapsed (start) < ticks) 
+//     thread_yield ();
+    thread_sleep( start + ticks );
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -170,8 +171,12 @@ timer_print_stats (void)
 static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
-  ticks++;
-  thread_tick ();
+    ticks++;
+    thread_tick ();
+    // check the next alarm clock time, and wake the respective thread until all alarms are turned off (20210411+)
+    while( thread_to_be_waken_up( )->alarm_time_ticks <= ticks ) {
+        thread_wake_up( );
+    }
 }
 
 /* Returns true if LOOPS iterations waits for more than one timer

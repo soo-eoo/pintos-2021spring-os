@@ -45,6 +45,166 @@ struct kernel_thread_frame
     void *aux;                  /* Auxiliary data for function. */
   };
 
+
+// dynamic array of threads for dynamic heap structure for saving alarm time for sleeping threads
+typedef struct {
+  struct thread **array;
+  size_t used;
+  size_t size;
+} Array_thread;
+
+void 
+initThreadArray( Array_thread *a, size_t initialSize) {
+    a->array = malloc( initialSize * sizeof( struct thread * ) );
+    a->used = 0;
+    a->size = initialSize;
+}
+
+// heap of sleeping threads
+static struct Array_thread heap_sleeping_threads;
+
+// heap structure for saving alarm time for sleeping threads
+// returns the index of the parent node
+int parent(int i) {
+    return (i - 1) / 2;
+}
+
+// return the index of the left child 
+int left_child(int i) {
+    return 2*i + 1;
+}
+
+// return the index of the right child 
+int right_child(int i) {
+    return 2*i + 2;
+}
+
+void swap_thread(struct thread **x, struct thread **y) {
+    struct thread *temp = *x;
+    *x = *y;
+    *y = temp;
+}
+
+// insert the item at the appropriate position
+void insert_thread_to_heap( Array_thread *a, struct thread *t ) 
+{    
+    if (a->used == a->size) {
+        struct thread *t;
+        a->size *= 2;
+        a->array = realloc( a->array, a->size * sizeof( *t ) );
+    }
+
+    // first insert the time at the last position of the array 
+    // and move it up
+    a->array[ a->used ] = t;
+    a->used = a->used + 1;
+
+    // move up until the heap property satisfies
+    int i = a->used - 1;
+    while (i != 0 && a->array[ parent( i ) ]->alarm_time_ticks > a->array[i]->alarm_time_ticks ) {
+        swap_thread( &a->array[ parent( i ) ], &a->array[ i ] );
+        i = parent( i );
+    }
+}
+
+void 
+thread_sleep( int64_t alarm_time_ticks ) 
+{
+    // tempate from 'thread_yield'
+    struct thread *cur;
+    
+    enum intr_level old_level;
+    old_level = intr_disable(); // disable inturrupt
+
+    cur = thread_current( );
+    
+    if (cur != idle_thread) {
+        cur->alarm_time_ticks = alarm_time_ticks; // set alarm clock
+        thread_block( ); // lock the thread out from scheduling 
+        insert_thread_to_heap( &heap_sleeping_threads, cur ); // add thread to the heap of sleeping threads
+    }
+    intr_set_level (old_level); // reset interrupt level
+}
+
+// moves the item at position i of array a
+// into its appropriate position
+void min_heapify( Array_thread *a, int i ) {
+    // find left child node
+    int left = left_child(i);
+
+    // find right child node
+    int right = right_child(i);
+
+    // find the largest among 3 nodes
+    int smallest = i;
+
+    // check if the left node is smaller than the current node
+    if ( left <= a->used && a->array[ left ]->alarm_time_ticks < a->array[ smallest ]->alarm_time_ticks ) {
+        smallest = left;
+    }
+    // check if the right node is larger than the current node
+    if ( right <= a->used && a->array[ right ]->alarm_time_ticks < a->array[ smallest ]->alarm_time_ticks ) {
+        smallest = right;
+    }
+
+    // swap the largest node with the current node 
+    // and repeat this process until the current node is smaller than 
+    // the right and the left node
+    if (smallest != i) {
+        swap_thread( &a->array[ smallest ], &a->array[ i ] );
+//         struct thread *temp = a->array[ i ];
+//         a->array[ i ] = a->array[ smallest ];
+//         a->array[ smallest ] = temp;
+        max_heapify( a, smallest );
+    }
+
+}
+
+// returns the minimum item of the heap
+int thread_to_be_waken_up( void ) {
+    return heap_sleeping_threads.array[ 0 ];
+}
+
+// deletes the min item and return
+struct thread *
+extract_min_thread_from_heap( Array_thread *a ) {
+    struct thread * min_item = a->array[ 0 ];
+
+    // replace the first item with the last item
+    a->array[ 0 ] = a->array[ a->used - 1 ];
+    a->used = a->used - 1;
+
+    // maintain the heap property by heapifying the 
+    // first item
+    min_heapify( a, 0 );
+    
+    // dynamically adjust the size of heap
+    if ( a->used <= ( a->size / 3 ) ) {
+        struct thread *t;
+        a->size /= 2;
+        a->array = realloc( a->array, a->size * sizeof( *t ) );
+    }
+    
+    return min_item;
+}
+
+// function to wake up a thread
+static void 
+thread_wake_up ( void ) 
+{
+    struct thread *t = thread_to_be_waken_up( ); // retrieve thread to be waken up
+    if(t->status == THREAD_BLOCKED) // re-check whether the thread is blocked 
+    {
+        // re-check alarm has been turned on, and wake the thread up
+        if( t->alarm_time_ticks <= timer_ticks () ) 
+        {
+            thread_unblock( t );
+            extract_min_thread_from_heap( &heap_sleeping_threads );
+        }
+    }
+}
+
+
 /* Statistics. */
 static long long idle_ticks;    /* # of timer ticks spent idle. */
 static long long kernel_ticks;  /* # of timer ticks in kernel threads. */
@@ -98,6 +258,9 @@ thread_init (void)
   init_thread (initial_thread, "main", PRI_DEFAULT);
   initial_thread->status = THREAD_RUNNING;
   initial_thread->tid = allocate_tid ();
+    
+    // initialize heap of sleeping threads
+    heap_sleeping_threads = initThreadArray( 100 );
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
