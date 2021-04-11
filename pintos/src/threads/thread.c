@@ -47,14 +47,8 @@ struct kernel_thread_frame
 
 
 // dynamic array of threads for dynamic heap structure for saving alarm time for sleeping threads
-typedef struct {
-  struct thread **array;
-  size_t used;
-  size_t size;
-} Array_thread;
-
 void 
-initThreadArray( Array_thread *a, size_t initialSize) {
+initThreadArray( struct Array_thread *a, size_t initialSize) {
     a->array = malloc( initialSize * sizeof( struct thread * ) );
     a->used = 0;
     a->size = initialSize;
@@ -86,7 +80,7 @@ void swap_thread(struct thread **x, struct thread **y) {
 }
 
 // insert the item at the appropriate position
-void insert_thread_to_heap( Array_thread *a, struct thread *t ) 
+void insert_thread_to_heap( struct Array_thread *a, struct thread *t ) 
 {    
     if (a->used == a->size) {
         struct thread *t;
@@ -128,7 +122,7 @@ thread_sleep( int64_t alarm_time_ticks )
 
 // moves the item at position i of array a
 // into its appropriate position
-void min_heapify( Array_thread *a, int i ) {
+void min_heapify( struct Array_thread *a, int i ) {
     // find left child node
     int left = left_child(i);
 
@@ -167,7 +161,7 @@ int thread_to_be_waken_up( void ) {
 
 // deletes the min item and return
 struct thread *
-extract_min_thread_from_heap( Array_thread *a ) {
+extract_min_thread_from_heap( struct Array_thread *a ) {
     struct thread * min_item = a->array[ 0 ];
 
     // replace the first item with the last item
