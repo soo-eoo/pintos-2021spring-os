@@ -139,7 +139,7 @@ int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
 
 
-typedef struct {
+struct Array_thread {
   struct thread **array;
   size_t used;
   size_t size;
