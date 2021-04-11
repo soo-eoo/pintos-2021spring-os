@@ -50,7 +50,10 @@ struct kernel_thread_frame
 // dynamic array of threads for dynamic heap structure for saving alarm time for sleeping threads
 void 
 initThreadArray( struct Array_thread *a, size_t initialSize) {
-    printf( initialSize * sizeof( struct thread * ) );
+    char result[50];
+    sprintf( result, "%d", initialSize * sizeof( struct thread * ) );
+    printf("\n The string for the num is %s", result);
+    
     a->array = malloc( initialSize * sizeof( struct thread * ) );
     a->used = 0;
     a->size = initialSize;
@@ -244,6 +247,8 @@ static tid_t allocate_tid (void);
 void
 thread_init (void) 
 {
+    size_t initialSize = 100;
+    
   ASSERT (intr_get_level () == INTR_OFF);
 
   lock_init (&tid_lock);
@@ -257,7 +262,8 @@ thread_init (void)
   initial_thread->tid = allocate_tid ();
     
     // initialize heap of sleeping threads
-    initThreadArray( &heap_sleeping_threads, 100 );
+    
+    initThreadArray( &heap_sleeping_threads, initialSize );
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.
