@@ -11,6 +11,7 @@
 #include "threads/switch.h"
 #include "threads/synch.h"
 #include "threads/vaddr.h"
+#include "threads/malloc.h"
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -155,7 +156,8 @@ void min_heapify( struct Array_thread *a, int i ) {
 }
 
 // returns the minimum item of the heap
-int thread_to_be_waken_up( void ) {
+struct thread *
+thread_to_be_waken_up( void ) {
     return heap_sleeping_threads.array[ 0 ];
 }
 
@@ -254,7 +256,7 @@ thread_init (void)
   initial_thread->tid = allocate_tid ();
     
     // initialize heap of sleeping threads
-    heap_sleeping_threads = initThreadArray( 100 );
+    heap_sleeping_threads = initThreadArray( &heap_sleeping_threads, 100 );
 }
 
 /* Starts preemptive thread scheduling by enabling interrupts.

@@ -145,7 +145,7 @@ struct Array_thread {
   size_t size;
 } Array_thread;
 
-void initThreadArray( struct Array_thread *, size_t);
+void initThreadArray( struct Array_thread * a, size_t initialSize);
 int parent( int i );
 int left_child( int i );
 int right_child( int i );
